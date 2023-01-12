@@ -36,12 +36,12 @@ Run the programs from the command line from the DirectVisualServoing directory, 
 		1
 ```
 for a purely simulated photometric visual servoing. Commande line arguments are in this order:
- \param FileOrEEPROMkeyword if a filename: camera ini file or image file to texture a simulated environment / if EEPROM, loads the camera acquisition parameters from the camera EEPROM (put there from, e.g., ueyedemo or uEyeCockpit software)
- \param metFac the factor to transform shiftX to meters
- \param sceneDepth the positive depth of the scene at desired pose (in coherent units regarding metFac)
- \param shiftX the signed lateral shift (in coherent units regarding metFac)
- \param shiftZ the signed depth shift (in coherent units regarding metFac)
- \param rotY the signed vertical rotation (in degrees)
+- \param FileOrEEPROMkeyword if a filename: camera ini file or image file to texture a simulated environment / if EEPROM, loads the camera acquisition parameters from the camera EEPROM (put there from, e.g., ueyedemo or uEyeCockpit software)
+- \param metFac the factor to transform shiftX to meters
+- \param sceneDepth the positive depth of the scene at desired pose (in coherent units regarding metFac)
+- \param shiftX the signed lateral shift (in coherent units regarding metFac)
+- \param shiftZ the signed depth shift (in coherent units regarding metFac)
+- \param rotY the signed vertical rotation (in degrees)
 
 The directory resultat contains the outputs (desired, current and error images + desired and current poses along iterations + residuals + processing times)
 
