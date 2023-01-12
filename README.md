@@ -26,7 +26,7 @@ Dates: from December 2022 to ...
 ## Execution
 
 Run the programs from the command line from the DirectVisualServoing directory, considering it includes the 2023_direct-visual-servoing-data directory, with arguments as:
-     
+```
 ./photometric-visual-servoing-build/photometricVisualServoing \
 		./2023_direct-visual-servoing-data/texture4simu/tsukubacenter.jpg \
 		1000 \
@@ -34,7 +34,7 @@ Run the programs from the command line from the DirectVisualServoing directory, 
 		5 \
 		-5 \
 		1
-
+```
 for a purely simulated photometric visual servoing. Commande line arguments are in this order:
  \param FileOrEEPROMkeyword if a filename: camera ini file or image file to texture a simulated environment / if EEPROM, loads the camera acquisition parameters from the camera EEPROM (put there from, e.g., ueyedemo or uEyeCockpit software)
  \param metFac the factor to transform shiftX to meters
