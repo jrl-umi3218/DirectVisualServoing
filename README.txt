@@ -1,6 +1,6 @@
 ##########################################################################################
 #
-# direct-visual-servoing: joint work between CNRS-AIST JRL and UPJV MIS lab based on Inria/IRISA's ViSP
+# DirectVisualServoing: joint work between CNRS-AIST JRL and UPJV MIS lab based on Inria/IRISA's ViSP
 #
 # Authors: Guillaume Caron, Belinda Naamani, ...
 #
@@ -12,12 +12,12 @@
      install opencv (version 4.2.0 tested)
      install ViSP (version 3.4.1 tested)
      download test data from: http://mis.u-picardie.fr/~g-caron/data/2023_direct-visual-servoing-data.zip and set its content in the 2023_direct-visual-servoing-data directory, itself in the DirectVisualServoing directory
-1. create a new directory named direct-visual-servoing-build in the DirectVisualServoing directory
+1. create a new directory named photometric-visual-servoing-build in the DirectVisualServoing directory
 2. use cmake to fill the build directory in
 3. open the project in build or use the make command in the latter directory to build the exe file
 5. run the programs from the command line from the DirectVisualServoing directory, considering it includes the 2023_direct-visual-servoing-data directory, with arguments as:
      
-./direct-visual-servoing-build/photometricVisualServoing \
+./photometric-visual-servoing-build/photometricVisualServoing \
 		./2023_direct-visual-servoing-data/texture4simu/tsukubacenter.jpg \
 		1000 \
 		500 \
