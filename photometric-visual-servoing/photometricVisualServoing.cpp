@@ -19,6 +19,42 @@
  \date December 2022 - 
  */
 
+//#define WITH_TX_ROBOT
+//#define WITH_IDS_CAMERA
+//#define WITH_UR_ROBOT
+//#define WITH_FLIR_CAMERA
+
+#ifdef WITH_TX_ROBOT
+  #include "../src/Robot/C_Staubli.h"
+#endif
+
+#ifdef WITH_UR_ROBOT
+  #include "../src/Robot/C_UR.h"
+#endif
+
+#if defined(WITH_TX_ROBOT) || defined(WITH_UR_ROBOT)
+		#define WITHROBOT
+#endif
+
+#ifdef WITH_IDS_CAMERA
+	#include "../src/Camera/CamuEye.h"
+	#include "../src/Camera/CamuEyeException.h"
+#endif
+
+#ifdef WITH_FLIR_CAMERA
+//  #include "../src/Camera/CamFlirFlyCapture.hpp"
+  #include "../src/Camera/CamFlirSpinnaker.hpp"
+#endif
+
+#if defined(WITH_IDS_CAMERA) || defined(WITH_FLIR_CAMERA)
+		#define WITHCAMERA
+#endif
+
+#define VERBOSE
+
+#define INDICATORS
+#define FILE_EXT "jpg"
+
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpImageTools.h>
 #include <visp3/io/vpImageIo.h>
@@ -35,33 +71,12 @@
 #include <visp3/gui/vpDisplayOpenCV.h>
 #include <visp3/gui/vpDisplayX.h>
 
-#include <visp3/io/vpParseArgv.h>
 #include <visp3/visual_features/vpFeatureLuminance.h>
 #include <visp3/vs/vpServo.h>
 
 #include <stdlib.h>
 #include <visp3/robot/vpImageSimulator.h>
 #define cZ 1
-
-#include <visp3/core/vpIoTools.h>
-#include <visp3/io/vpParseArgv.h>
-
-//#define WITHROBOT
-//#define WITHCAMERA
-
-#ifdef WITHROBOT
-  #include "../src/Robot/C_Staubli.h"
-#endif
-
-#ifdef WITHCAMERA
-	#include "../src/Camera/CamuEye.h"
-	#include "../src/Camera/CamuEyeException.h"
-#endif
-
-#define VERBOSE
-
-#define INDICATORS
-#define FILE_EXT "jpg"
 
 int main(int argc, const char **argv)
 {
@@ -155,10 +170,15 @@ int main(int argc, const char **argv)
 
 #ifdef WITHCAMERA
 	int larg = 640, haut = 512;
-	cv::Mat iGrab(haut,larg,CV_8UC1);
-    
+
+#ifdef WITH_IDS_CAMERA
+	  cv::Mat iGrab(haut,larg,CV_8UC1);
     CamuEye grabber = CamuEye(larg,haut,8,0,&filename);
-    
+#elif defined(WITH_FLIR_CAMERA)
+		vpImage<unsigned char> iGrab;
+		CamFlirSpinnaker<unsigned char> grabber(larg,haut,8,0);
+#endif
+
     //Acquisition
     grabber.getFrame(iGrab);
     vpImageConvert::convert(iGrab, Itexture);
@@ -170,7 +190,11 @@ int main(int argc, const char **argv)
 		vpCameraParameters cam(750, 750, 320, 256);
 
 #ifdef WITHROBOT
-		C_Staubli TX2_60("10.1.22.254", 1001); // 172.16.0.52?
+#ifdef WITH_TX_ROBOT
+		C_Staubli robot("10.1.22.254", 1001); // TX2-60: 172.16.0.52?
+#elif defined(WITH_UR_ROBOT)
+		C_UR robot("192.168.1.3", 30002, 2.0); // UR10
+#endif
 #else //without robot, we keep the simulation of a free flying camera
     vpColVector X[4];
     for (int i = 0; i < 4; i++)
@@ -216,7 +240,7 @@ int main(int argc, const char **argv)
 		j_init[4] = vpMath::rad(88.69);
 		j_init[5] = vpMath::rad(84.95);
 
-		TX2_60.setCameraArticularPose(j_init);
+		robot.setCameraArticularPose(j_init);
 		
 		vpTime::wait(5000);
 
@@ -255,7 +279,7 @@ int main(int argc, const char **argv)
 
   vpColVector p;
 #ifdef WITHROBOT   
-  TX2_60.getCameraPoseRaw(p);
+  robot.getCameraPoseRaw(p);
 #else
 	vpPoseVector pv;
 	pv.buildFrom(cdMo);
@@ -298,7 +322,7 @@ int main(int argc, const char **argv)
   std::cout << "Deplacement vers pose initiale " << p_init.t() << std::endl;
 
 #ifdef WITHROBOT
-	TX2_60.setCameraRelativePose(p_init);
+	robot.setCameraRelativePose(p_init);
 
   vpTime::wait(5000);
 
@@ -357,10 +381,10 @@ int main(int argc, const char **argv)
 
 #ifndef WITHROBOT
     // create the robot (here a simulated free flying camera)
-    vpSimulatorCamera robot;
-    robot.setSamplingTime(0.04);
+    vpSimulatorCamera freeFlyingCamera;
+    freeFlyingCamera.setSamplingTime(0.04);
     wMc = wMo * cMo.inverse();
-    robot.setPosition(wMc);
+    freeFlyingCamera.setPosition(wMc);
 #endif
 
     // ------------------------------------------------------
@@ -385,7 +409,7 @@ int main(int argc, const char **argv)
     vpServo servo;
     // define the task
     // - we want an eye-in-hand control law
-    // - robot is controlled in the camera frame
+    // - robot or freeFlyingCamera is controlled in the camera frame
     servo.setServo(vpServo::EYEINHAND_CAMERA);
     // add current and desired visual features
     servo.addFeature(sI, sId);
@@ -396,7 +420,7 @@ int main(int argc, const char **argv)
 
 #ifndef WITHROBOT
     // set a velocity control mode
-    robot.setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
+    freeFlyingCamera.setRobotState(vpRobot::STATE_VELOCITY_CONTROL);
 #endif
 
     int iter = 1;
@@ -426,7 +450,7 @@ int main(int argc, const char **argv)
 #ifdef WITHROBOT
 
 #ifdef INDICATORS
-    TX2_60.getCameraPoseRaw(p);
+    robot.getCameraPoseRaw(p);
 #endif //INDICATORS
 			
 #ifdef WITHCAMERA
@@ -471,11 +495,11 @@ int main(int argc, const char **argv)
       // send the robot velocity
 #ifdef WITHROBOT
     //if(servo_actif)
-      TX2_60.setCameraVelocity(v);
+      robot.setCameraVelocity(v);
 
 #else
-      robot.setVelocity(vpRobot::CAMERA_FRAME, v);
-      wMc = robot.getPosition();
+      freeFlyingCamera.setVelocity(vpRobot::CAMERA_FRAME, v);
+      wMc = freeFlyingCamera.getPosition();
       cMo = wMc.inverse() * wMo;
 #endif
 
@@ -502,10 +526,10 @@ int main(int argc, const char **argv)
     v = 0;
 #ifdef WITHROBOT
     //if(servo_actif)
-      TX2_60.setCameraVelocity(v);
+      robot.setCameraVelocity(v);
 
 #else
-    robot.setVelocity(vpRobot::CAMERA_FRAME, v);
+    freeFlyingCamera.setVelocity(vpRobot::CAMERA_FRAME, v);
 #endif
 
 #ifdef INDICATORS
