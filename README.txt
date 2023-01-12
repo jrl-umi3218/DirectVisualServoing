@@ -1,13 +1,12 @@
-##########################################################################################
-#
-# DirectVisualServoing: joint work between CNRS-AIST JRL and UPJV MIS lab based on Inria/IRISA's ViSP
-#
-# Authors: Guillaume Caron, Belinda Naamani, ...
-#
-# Dates: from December 2022 to ...
-##########################################################################################
+# DirectVisualServoing
 
-0. Prerequisites to run these codes: 
+Joint work between CNRS-AIST JRL and UPJV MIS lab based on Inria/IRISA's ViSP
+
+Authors: Guillaume Caron, Belinda Naamani, ...
+
+Dates: from December 2022 to ...
+
+## Prerequisites to run these codes: 
      - install cmake (version 3.16.3 tested)
      - install opencv (version 4.2.0 tested)
      - install ViSP (version 3.4.1 tested)
@@ -15,10 +14,18 @@
      - if using a Flir camera, install the Flir Spinnaker SDK (version 2.6.0.157 tested, FlyCapture is also possible for older operating systems)
      - if using an UR robot, install the ur_rtde library (https://gitlab.com/sdurobotics/ur_rtde, version 1.5.0 tested)
      - download test data from: http://mis.u-picardie.fr/~g-caron/data/2023_direct-visual-servoing-data.zip and set its content in the 2023_direct-visual-servoing-data directory, itself in the DirectVisualServoing directory
-1. create a new directory named photometric-visual-servoing-build in the DirectVisualServoing directory
-2. use cmake to fill the build directory in, from command line in photometric-visual-servoing-build directory: cmake ../photometric-visual-servoing -DCMAKE_BUILD_TYPE=Release (add -D USE_TX=True to use Staubli robot classes, -D USE_UR=True to use UR robot classes, -D USE_IDS=True to use IDS camera classes, -D USE_FLIR=True to use Flir camera classes. Note: for the moment only combinations of IDS+TX or FLIR+UR are possible.)
-3. open the project in build or use the make command in the latter directory to build the exe file
-5. run the programs from the command line from the DirectVisualServoing directory, considering it includes the 2023_direct-visual-servoing-data directory, with arguments as:
+
+## Installation
+
+- create a new directory named photometric-visual-servoing-build in the DirectVisualServoing directory
+
+- use cmake to fill the build directory in, from command line in photometric-visual-servoing-build directory: cmake ../photometric-visual-servoing -DCMAKE_BUILD_TYPE=Release (add -D USE_TX=True to use Staubli robot classes, -D USE_UR=True to use UR robot classes, -D USE_IDS=True to use IDS camera classes, -D USE_FLIR=True to use Flir camera classes. Note: for the moment only combinations of IDS+TX or FLIR+UR are possible.)
+
+- open the project in build or use the make command in the latter directory to build the exe file
+
+## Execution
+
+Run the programs from the command line from the DirectVisualServoing directory, considering it includes the 2023_direct-visual-servoing-data directory, with arguments as:
      
 ./photometric-visual-servoing-build/photometricVisualServoing \
 		./2023_direct-visual-servoing-data/texture4simu/tsukubacenter.jpg \
