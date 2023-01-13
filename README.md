@@ -12,22 +12,24 @@ Dates: from December 2022 to ...
 - install ViSP (version 3.4.1 tested)
 - if using an IDS camera, install the IDS software suite (version 4.96.1 tested)
 - if using a Flir camera, install the Flir Spinnaker SDK (version 2.6.0.157 tested, FlyCapture is also possible for older operating systems)
-- if using an UR robot, install the ur_rtde library (https://gitlab.com/sdurobotics/ur_rtde, version 1.5.0 tested)
-- download test data from: http://mis.u-picardie.fr/~g-caron/data/2023_direct-visual-servoing-data.zip and set its content in the 2023_direct-visual-servoing-data directory, itself in the DirectVisualServoing directory
+- if using an UR robot, install the `ur_rtde` library (`https://gitlab.com/sdurobotics/ur_rtde`, version 1.5.0 tested)
+- download test data from: `http://mis.u-picardie.fr/~g-caron/data/2023_direct-visual-servoing-data.zip` and set its content in the `2023_direct-visual-servoing-data` directory, itself in the `DirectVisualServoing` directory
 
 ## Installation
 
-- create a new directory named photometric-visual-servoing-build in the DirectVisualServoing directory
+- create in the `DirectVisualServoing` directory a new directory named:
+	- `photometric-visual-servoing-build` for photometric visual servoing
+	- `defocus-direct-visual-servoing-build` for defocus-based direct visual servoing
 
-- use cmake (twice) to fill the build directory in, from command line (add -D USE_TX=True to use Staubli robot classes, -D USE_UR=True to use UR robot classes, -D USE_IDS=True to use IDS camera classes, -D USE_FLIR=True to use Flir camera classes. Note: for the moment only combinations of IDS+TX or FLIR+UR are possible.): 
-	- in photometric-visual-servoing-build directory: cmake ../photometric-visual-servoing -DCMAKE_BUILD_TYPE=Release
-	- in defocus-direct-visual-servoing-build directory: cmake ../defocus-direct-visual-servoing -DCMAKE_BUILD_TYPE=Release -D USE_UR=True -D USE_FLIR=True
+- use cmake (twice) to fill the build directory in, from command line (add `-D USE_TX=True` to use Staubli robot classes, `-D USE_UR=True` to use UR robot classes, `-D USE_IDS=True` to use IDS camera classes, `-D USE_FLIR=True` to use Flir camera classes. Note: for the moment only combinations of IDS+TX or FLIR+UR are possible.): 
+	- in `photometric-visual-servoing-build` directory: `cmake ../photometric-visual-servoing -DCMAKE_BUILD_TYPE=Release`
+	- in `defocus-direct-visual-servoing-build` directory: `cmake ../defocus-direct-visual-servoing -DCMAKE_BUILD_TYPE=Release -D USE_UR=True -D USE_FLIR=True`
 
-- open the project in build or use the make command in the latter directory to build the exe file
+- open the project in `*-build` or use the `make` command in the latter directory to build the `exe` file
 
 ## Execution
 
-Run the programs from the command line from the DirectVisualServoing directory, considering it includes the 2023_direct-visual-servoing-data directory, with arguments as:
+Run the programs from the command line from the `DirectVisualServoing` directory, considering it includes the `2023_direct-visual-servoing-data` directory, with arguments as:
 - for photometric visual servoing (purely simulated)
 ```
 ./photometric-visual-servoing-build/photometricVisualServoing \
@@ -57,6 +59,6 @@ Command line arguments are in this order:
 - \param shiftZ the signed depth shift (in coherent units regarding metFac)
 - \param rotY the signed vertical rotation (in degrees)
 
-The directory resultat contains the outputs (desired, current and error images + desired and current poses along iterations + residuals + processing times)
+The directory `resultat` contains the outputs (desired, current and error images + desired and current poses along iterations + residuals + processing times)
 
-In photometricVisualServoing.cpp, defocusDirectVisualServoing.cpp source files, uncomment #define WITH_*_ROBOT, and #define WITH_*_CAMERA to use a real robot, for the former, and a real camera, for the latter, and comment them to use a fully simulated run. 
+In `photometricVisualServoing.cpp`, `defocusDirectVisualServoing.cpp` source files, uncomment `#define WITH_*_ROBOT`, and `#define WITH_*_CAMERA` to use a real robot, for the former, and a real camera, for the latter, and comment them to use a fully simulated run. 
