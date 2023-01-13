@@ -28,7 +28,7 @@ Dates: from December 2022 to ...
 ## Execution
 
 Run the programs from the command line from the DirectVisualServoing directory, considering it includes the 2023_direct-visual-servoing-data directory, with arguments as:
-	- for photometric visual servoing (purely simulated)
+- for photometric visual servoing (purely simulated)
 ```
 ./photometric-visual-servoing-build/photometricVisualServoing \
 		./2023_direct-visual-servoing-data/texture4simu/tsukubacenter.jpg \
@@ -38,7 +38,7 @@ Run the programs from the command line from the DirectVisualServoing directory, 
 		-5 \
 		1
 ```
-	- for defocus-based direct visual servoing
+- for defocus-based direct visual servoing
 ```
 ./defocus-direct-visual-servoing-build/defocusDirectVisualServoing \
 		EEPROM \
