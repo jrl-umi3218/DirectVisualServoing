@@ -32,7 +32,9 @@ set(example_cpp
 if(DEFINED USE_IDS)
 	if(DEFINED USE_TX)
 		set(src_cpp
-		  ./src/CCameraThinLensParameters
+		  ./src/CCameraThinLensParameters.cpp
+		  ./src/CFeatureDefocusedLuminance.cpp
+		  ./src/CImageFilter.cpp
 		  
   		../src/Camera/CamuEye.cpp
   		../src/Camera/CamuEyeException.cpp
@@ -40,8 +42,10 @@ if(DEFINED USE_IDS)
   		../src/Robot/C_Staubli.cpp)
   else()
   		set(src_cpp
-		  ./src/CCameraThinLensParameters
-		    		
+		  ./src/CCameraThinLensParameters.cpp
+		  ./src/CFeatureDefocusedLuminance.cpp
+		  ./src/CImageFilter.cpp
+		  
   		../src/Camera/CamuEye.cpp
   		../src/Camera/CamuEyeException.cpp)
   endif()
@@ -49,14 +53,18 @@ endif()
 if(DEFINED USE_FLIR)
 	if(DEFINED USE_UR)
 		set(src_cpp
-			  ./src/CCameraThinLensParameters
+			  ./src/CCameraThinLensParameters.cpp
+			  ./src/CFeatureDefocusedLuminance.cpp
+		  	./src/CImageFilter.cpp
 		  
 		    ../src/Camera/CamFlirSpinnaker.hpp
 		    
   		../src/Robot/C_UR.cpp)
   else()
   		set(src_cpp
-  		  ./src/CCameraThinLensParameters
+  		  ./src/CCameraThinLensParameters.cpp
+		  	./src/CFeatureDefocusedLuminance.cpp
+		  	./src/CImageFilter.cpp
 		  
 		    ../src/Camera/CamFlirSpinnaker.hpp)
   endif()

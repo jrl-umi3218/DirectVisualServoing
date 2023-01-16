@@ -21,8 +21,8 @@
 
 //#define WITH_TX_ROBOT
 //#define WITH_IDS_CAMERA
-#define WITH_UR_ROBOT
-#define WITH_FLIR_CAMERA
+//#define WITH_UR_ROBOT
+//#define WITH_FLIR_CAMERA
 
 #ifdef WITH_TX_ROBOT
   #include "../src/Robot/C_Staubli.h"
@@ -71,7 +71,8 @@
 #include <visp3/gui/vpDisplayOpenCV.h>
 #include <visp3/gui/vpDisplayX.h>
 
-#include <visp3/visual_features/vpFeatureLuminance.h>
+//#include <visp3/visual_features/vpFeatureLuminance.h>
+#include "src/CFeatureDefocusedLuminance.h"
 #include <visp3/vs/vpServo.h>
 
 #include <stdlib.h>
@@ -171,14 +172,15 @@ int main(int argc, const char **argv)
   p_init[4] = rotY/180.0; //*M_PI
   
     
-    vpImage<unsigned char> Itexture;
+  vpImage<unsigned char> Itexture;
 
-#ifdef WITHCAMERA
 	int larg = ACQWIDTH*FACT, haut = ACQHEIGHT*FACT;
 	
 	// very theorical
 	double u0 = (ACQWIDTH*0.5)*FACT;
   double v0 = (ACQHEIGHT*0.5)*FACT;
+
+#ifdef WITHCAMERA
 
 #ifdef WITH_IDS_CAMERA
 	  cv::Mat iGrab(haut,larg,CV_8UC1);
@@ -207,7 +209,7 @@ int main(int argc, const char **argv)
 		//Parametres objectif Yakumo
 		double precond = 1.0;// 0.1;//
 		//ku /= precond;
-		double f = precond*17e-3; // m
+		double f = precond*8.5e-3;//17e-3; // m
 		double FNumber = 0.95; //no unit
 		double Zf = 0.5;//0.25; // m
 
@@ -419,13 +421,15 @@ int main(int argc, const char **argv)
 
     // current visual feature built from the image
     // (actually, this is the image...)
-    vpFeatureLuminance sI;
+    //vpFeatureLuminance sI;
+		CFeatureDefocusedLuminance sI;
     sI.init(I.getHeight(), I.getWidth(), sceneDepth);
     sI.setCameraParameters(cam);
     sI.buildFrom(I);
 
     // desired visual feature built from the image
-    vpFeatureLuminance sId;
+    //vpFeatureLuminance sId;
+		CFeatureDefocusedLuminance sId;
     sId.init(I.getHeight(), I.getWidth(), sceneDepth);
     sId.setCameraParameters(cam);
     sId.buildFrom(Id);
