@@ -25,6 +25,16 @@ Dates: from December 2022 to ...
 	- in `photometric-visual-servoing-build` directory: `cmake ../photometric-visual-servoing -DCMAKE_BUILD_TYPE=Release`
 	- in `defocus-direct-visual-servoing-build` directory: `cmake ../defocus-direct-visual-servoing -DCMAKE_BUILD_TYPE=Release -D USE_UR=True -D USE_FLIR=True`
 
+- set the desired robot joint angles within the source code (temporary: check the angles on your robot):
+```
+		j_init[0] = vpMath::rad(-98.72);
+		j_init[1] = vpMath::rad(-158.20);
+		j_init[2] = vpMath::rad(-99.87);
+		j_init[3] = vpMath::rad(-11.00);
+		j_init[4] = vpMath::rad(87.87);
+		j_init[5] = vpMath::rad(97.40);
+```
+
 - open the project in `*-build` or use the `make` command in the latter directory to build the `exe` file
 
 ## Execution
