@@ -21,8 +21,8 @@
 
 //#define WITH_TX_ROBOT
 //#define WITH_IDS_CAMERA
-//#define WITH_UR_ROBOT
-//#define WITH_FLIR_CAMERA
+#define WITH_UR_ROBOT
+#define WITH_FLIR_CAMERA
 
 #ifdef WITH_TX_ROBOT
   #include "../src/Robot/C_Staubli.h"
@@ -220,7 +220,7 @@ int main(int argc, const char **argv)
 #ifdef WITH_TX_ROBOT
 		C_Staubli robot("10.1.22.254", 1001); // TX2-60: 172.16.0.52?
 #elif defined(WITH_UR_ROBOT)
-		C_UR robot("192.168.1.3", 30002, 2.0); // UR10
+		C_UR robot("192.168.1.3", 30003, 2.0); // UR10
 #endif
 #else //without robot, we keep the simulation of a free flying camera
     vpColVector X[4];
@@ -260,12 +260,13 @@ int main(int argc, const char **argv)
 #ifdef WITHROBOT
 		vpColVector j_init(6);
 
-		j_init[0] = vpMath::rad(-51.13);
-		j_init[1] = vpMath::rad(-129.05);
-		j_init[2] = vpMath::rad(-96.63);
-		j_init[3] = vpMath::rad(-41.79);
-		j_init[4] = vpMath::rad(88.69);
-		j_init[5] = vpMath::rad(84.95);
+		//0.5 m depth 2
+		j_init[0] = vpMath::rad(-98.72);
+		j_init[1] = vpMath::rad(-158.20);
+		j_init[2] = vpMath::rad(-99.87);
+		j_init[3] = vpMath::rad(-11.00);
+		j_init[4] = vpMath::rad(87.87);
+		j_init[5] = vpMath::rad(97.40);
 
 		robot.setCameraArticularPose(j_init);
 		
@@ -275,6 +276,7 @@ int main(int argc, const char **argv)
 		//Acquisition desired image
     grabber.getFrame(iGrab);
     vpImageConvert::convert(iGrab, Id);
+		I = Id; // for display purpose only
 #endif //WITHCAMERA
 
 #else
