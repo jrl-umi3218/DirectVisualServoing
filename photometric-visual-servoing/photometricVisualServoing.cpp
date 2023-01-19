@@ -21,8 +21,8 @@
 
 //#define WITH_TX_ROBOT
 //#define WITH_IDS_CAMERA
-//#define WITH_UR_ROBOT
-//#define WITH_FLIR_CAMERA
+#define WITH_UR_ROBOT
+#define WITH_FLIR_CAMERA
 
 #ifdef WITH_TX_ROBOT
   #include "../src/Robot/C_Staubli.h"
@@ -52,7 +52,7 @@
 
 #define VERBOSE
 
-#define INDICATORS
+//#define INDICATORS
 #define FILE_EXT "jpg"
 
 #include <visp3/core/vpImage.h>
@@ -166,7 +166,7 @@ int main(int argc, const char **argv)
   p_init[4] = rotY/180.0; //*M_PI
   
     
-    vpImage<unsigned char> Itexture;
+  vpImage<unsigned char> Itexture;
 
 #ifdef WITHCAMERA
 	int larg = 640, haut = 512;
@@ -233,21 +233,24 @@ int main(int argc, const char **argv)
 #ifdef WITHROBOT
 		vpColVector j_init(6);
 
-		j_init[0] = vpMath::rad(-51.13);
-		j_init[1] = vpMath::rad(-129.05);
-		j_init[2] = vpMath::rad(-96.63);
-		j_init[3] = vpMath::rad(-41.79);
-		j_init[4] = vpMath::rad(88.69);
-		j_init[5] = vpMath::rad(84.95);
+		//0.5 m depth 2
+		j_init[0] = vpMath::rad(-98.72);
+		j_init[1] = vpMath::rad(-158.20);
+		j_init[2] = vpMath::rad(-99.87);
+		j_init[3] = vpMath::rad(-11.00);
+		j_init[4] = vpMath::rad(87.87);
+		j_init[5] = vpMath::rad(97.40);
 
 		robot.setCameraArticularPose(j_init);
-		
+
 		vpTime::wait(5000);
 
 #ifdef WITHCAMERA
 		//Acquisition desired image
     grabber.getFrame(iGrab);
     vpImageConvert::convert(iGrab, Id);
+
+		I = Id; //for display purpose only
 #endif //WITHCAMERA
 
 #else
@@ -278,7 +281,7 @@ int main(int argc, const char **argv)
   std::ofstream ficDesiredPose(filenameOut.c_str());
 
   vpColVector p;
-#ifdef WITHROBOT   
+#ifdef WITHROBOT
   robot.getCameraPoseRaw(p);
 #else
 	vpPoseVector pv;
@@ -551,14 +554,14 @@ int main(int argc, const char **argv)
     s << "resultat/times.txt";
     filename = s.str();
     std::ofstream ficTimes(filename.c_str());
-		/*
-    //save servo actif list to file
-    s.str("");
-    s.setf(std::ios::right, std::ios::adjustfield);
-    s << "resultat/servoActif.txt";
-    filename = s.str();
-    std::ofstream ficServo(filename.c_str());
-		*/
+		
+    ////save servo actif list to file
+    //s.str("");
+    //s.setf(std::ios::right, std::ios::adjustfield);
+    //s << "resultat/servoActif.txt";
+    //filename = s.str();
+    //std::ofstream ficServo(filename.c_str());
+		
     for(unsigned int i = 0 ; i < v_p.size() ; i++)
     {
       ficPoses << v_p[i].t() << std::endl;
