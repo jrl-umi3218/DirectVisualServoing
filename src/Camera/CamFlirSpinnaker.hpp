@@ -1,6 +1,6 @@
 // Guillaume Caron
 // JRL, AIST, Tsukuba, Japan
-// Dec. 2020
+// Dec. 2022
 #ifndef __CamFlirSpinnaker_H__
 #define  __CamFlirSpinnaker_H__
 
