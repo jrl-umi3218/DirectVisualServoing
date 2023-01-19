@@ -1,11 +1,11 @@
 /*!
- \file photometricVisualServoing.cpp
- \brief Originally implemented from \cite Collewet08c, here extended to real visual servoing
+ \file defocusDirectVisualServoing.cpp
+ \brief Extension of photometric visual servoing \cite Collewet08c to defocus-based direct visual servoing \cite Caron21
  
  * example command line :
-./photometricVisualServoing /home/guillaume/Data/tsukubacenter.jpg 1000 500 5 -5 1
+./defocusDirectVisualServoing /home/guillaume/Data/tsukubacenter.jpg 1000 500 5 -5 1
 
-./photometricVisualServoing EEPROM 1000 500 10 -200 5
+./defocusDirectVisualServoing EEPROM 1000 500 10 -200 5
 
  \param FileOrEEPROMkeyword if a filename: camera ini file or image file to texture a simulated environment / if EEPROM, loads the camera acquisition parameters from the camera EEPROM (put there from, e.g., ueyedemo or uEyeCockpit software)
  \param metFac the factor to transform shiftX to meters
@@ -16,7 +16,7 @@
  *
  \author Guillaume CARON
  \version 0.1
- \date December 2022 - 
+ \date 2020-2021 (initial code, https://gite.lirmm.fr/jrp-2019/phovs.git), then January 2023 - (this code) 
  */
 
 //#define WITH_TX_ROBOT
@@ -52,14 +52,14 @@
 
 #define VERBOSE
 
-//#define INDICATORS
+#define INDICATORS
 #define FILE_EXT "jpg"
 
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpImageTools.h>
 #include <visp3/io/vpImageIo.h>
 
-#include <visp3/core/vpCameraParameters.h>
+#include "src/CCameraThinLensParameters.h"
 #include <visp3/core/vpTime.h>
 #include <visp3/robot/vpSimulatorCamera.h>
 
@@ -71,12 +71,18 @@
 #include <visp3/gui/vpDisplayOpenCV.h>
 #include <visp3/gui/vpDisplayX.h>
 
-#include <visp3/visual_features/vpFeatureLuminance.h>
+//#include <visp3/visual_features/vpFeatureLuminance.h>
+#include "src/CFeatureDefocusedLuminance.h"
 #include <visp3/vs/vpServo.h>
 
 #include <stdlib.h>
 #include <visp3/robot/vpImageSimulator.h>
 #define cZ 1
+
+//Pour images acquises de 640x512
+#define ACQWIDTH 640
+#define ACQHEIGHT 512
+#define FACT 1.0
 
 int main(int argc, const char **argv)
 {
@@ -168,8 +174,13 @@ int main(int argc, const char **argv)
     
   vpImage<unsigned char> Itexture;
 
+	int larg = ACQWIDTH*FACT, haut = ACQHEIGHT*FACT;
+	
+	// very theorical
+	double u0 = (ACQWIDTH*0.5)*FACT;
+  double v0 = (ACQHEIGHT*0.5)*FACT;
+
 #ifdef WITHCAMERA
-	int larg = 640, haut = 512;
 
 #ifdef WITH_IDS_CAMERA
 	  cv::Mat iGrab(haut,larg,CV_8UC1);
@@ -187,13 +198,29 @@ int main(int argc, const char **argv)
     vpImageIo::read(Itexture, filename);
 #endif
 
-		vpCameraParameters cam(750, 750, 320, 256);
+		//vpCameraParameters cam(750, 750, 320, 256);
+		
+	  //Parametres intrinseques pour FlirCam FL3 1/1.8" 1280x1024 5.3 um (matrice: 6.784 mm x 5.4272 mm)
+
+  	double ku = (2*5.3e-6)/FACT; // m // 2*5.3e-6 because camera configured with binning x2
+
+  	//Parametres intrinseques pour FlirCam GS3 1" 2048x2048 5.5 um (matrice: 11.264 mm x 11.264 mm)
+  
+		//Parametres objectif Yakumo
+		double precond = 1.0;// 0.1;//
+		//ku /= precond;
+		double f = precond*8.5e-3;//17e-3; // m
+		double FNumber = 0.95; //no unit
+		double Zf = 0.5;//0.25; // m
+
+		CCameraThinLensParameters cam(f, ku, FNumber, Zf, u0, v0);
+		
 
 #ifdef WITHROBOT
 #ifdef WITH_TX_ROBOT
 		C_Staubli robot("10.1.22.254", 1001); // TX2-60: 172.16.0.52?
 #elif defined(WITH_UR_ROBOT)
-		C_UR robot("192.168.1.3", 30002, 2.0); // UR10
+		C_UR robot("192.168.1.3", 30003, 2.0); // UR10
 #endif
 #else //without robot, we keep the simulation of a free flying camera
     vpColVector X[4];
@@ -242,15 +269,14 @@ int main(int argc, const char **argv)
 		j_init[5] = vpMath::rad(97.40);
 
 		robot.setCameraArticularPose(j_init);
-
+		
 		vpTime::wait(5000);
 
 #ifdef WITHCAMERA
 		//Acquisition desired image
     grabber.getFrame(iGrab);
     vpImageConvert::convert(iGrab, Id);
-
-		I = Id; //for display purpose only
+		I = Id; // for display purpose only
 #endif //WITHCAMERA
 
 #else
@@ -281,7 +307,7 @@ int main(int argc, const char **argv)
   std::ofstream ficDesiredPose(filenameOut.c_str());
 
   vpColVector p;
-#ifdef WITHROBOT
+#ifdef WITHROBOT   
   robot.getCameraPoseRaw(p);
 #else
 	vpPoseVector pv;
@@ -397,13 +423,15 @@ int main(int argc, const char **argv)
 
     // current visual feature built from the image
     // (actually, this is the image...)
-    vpFeatureLuminance sI;
+    //vpFeatureLuminance sI;
+		CFeatureDefocusedLuminance sI;
     sI.init(I.getHeight(), I.getWidth(), sceneDepth);
     sI.setCameraParameters(cam);
     sI.buildFrom(I);
 
     // desired visual feature built from the image
-    vpFeatureLuminance sId;
+    //vpFeatureLuminance sId;
+		CFeatureDefocusedLuminance sId;
     sId.init(I.getHeight(), I.getWidth(), sceneDepth);
     sId.setCameraParameters(cam);
     sId.buildFrom(Id);
@@ -554,14 +582,14 @@ int main(int argc, const char **argv)
     s << "resultat/times.txt";
     filename = s.str();
     std::ofstream ficTimes(filename.c_str());
-		
-    ////save servo actif list to file
-    //s.str("");
-    //s.setf(std::ios::right, std::ios::adjustfield);
-    //s << "resultat/servoActif.txt";
-    //filename = s.str();
-    //std::ofstream ficServo(filename.c_str());
-		
+		/*
+    //save servo actif list to file
+    s.str("");
+    s.setf(std::ios::right, std::ios::adjustfield);
+    s << "resultat/servoActif.txt";
+    filename = s.str();
+    std::ofstream ficServo(filename.c_str());
+		*/
     for(unsigned int i = 0 ; i < v_p.size() ; i++)
     {
       ficPoses << v_p[i].t() << std::endl;
