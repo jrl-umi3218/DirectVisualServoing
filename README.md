@@ -11,7 +11,7 @@ Dates: from December 2022 to ...
 - install opencv (version 4.2.0 tested)
 - install ViSP (version 3.4.1 tested)
 - if using an IDS camera, install the IDS software suite (version 4.96.1 tested)
-- if using a Flir camera, install the Flir Spinnaker SDK (version 2.6.0.157 tested, FlyCapture is also possible for older operating systems)
+- if using a Flir camera, install the Flir Spinnaker SDK (version 3.0.0.118 tested, FlyCapture is also possible for older operating systems)
 - if using an UR robot, install the `ur_rtde` library (`https://gitlab.com/sdurobotics/ur_rtde`, version 1.5.5 tested)
 - download test data from: `http://mis.u-picardie.fr/~g-caron/data/2023_direct-visual-servoing-data.zip` and set its content in the `2023_direct-visual-servoing-data` directory, itself in the `DirectVisualServoing` directory
 

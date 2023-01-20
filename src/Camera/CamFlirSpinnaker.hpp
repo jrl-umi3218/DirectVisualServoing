@@ -95,7 +95,31 @@ public:
 						ptrAcquisitionMode->SetIntValue(acquisitionModeContinuous);
 
 						cout << "Acquisition mode set to continuous..." << endl;
+						
+						// Retrieve Stream Parameters device nodemap
+        		Spinnaker::GenApi::INodeMap& sNodeMap = pCam->GetTLStreamNodeMap();
 
+        		// Retrieve Buffer Handling Mode Information
+        		CEnumerationPtr ptrHandlingMode = sNodeMap.GetNode("StreamBufferHandlingMode");
+        		if (!IsReadable(ptrHandlingMode) || !IsWritable(ptrHandlingMode))
+				    {
+				        cout << "Unable to set Buffer Handling mode (node retrieval). Aborting..." << endl << endl;
+				    }
+
+				    CEnumEntryPtr ptrHandlingModeEntry = ptrHandlingMode->GetCurrentEntry();
+				    if (!IsReadable(ptrHandlingModeEntry))
+				    {
+				        cout << "Unable to get Buffer Handling mode (Entry retrieval). Aborting..." << endl << endl;
+				    }
+
+				    // Display Buffer Info
+				    cout << endl << "Default Buffer Handling Mode: " << ptrHandlingModeEntry->GetDisplayName() << endl;
+
+						ptrHandlingModeEntry = ptrHandlingMode->GetEntryByName("NewestOnly");
+            ptrHandlingMode->SetIntValue(ptrHandlingModeEntry->GetValue());
+            cout << endl
+                 << endl
+                 << "Buffer Handling Mode has been set to " << ptrHandlingModeEntry->GetDisplayName() << endl;
 
 						//
 						// Begin acquiring images
@@ -113,6 +137,8 @@ public:
 						pCam->BeginAcquisition();
 
 						cout << "Acquiring images..." << endl;
+						
+						processor.SetColorProcessing(SPINNAKER_COLOR_PROCESSING_ALGORITHM_HQ_LINEAR);
 					}
 				}
 
@@ -157,7 +183,7 @@ public:
 		try
 		{
 			//
-			pResultImage = pCam->GetNextImage(1000);
+			pResultImage = pCam->GetNextImage(500);
 
 			//
 			// Ensure image completion
@@ -180,10 +206,16 @@ public:
 						//
 						// Convert image to mono 8
 						//
-						convertedImage = pResultImage->Convert(PixelFormat_Mono8, HQ_LINEAR);
+						//convertedImage = pResultImage->Convert(PixelFormat_Mono8, HQ_LINEAR);
+						convertedImage = processor.Convert(pResultImage, PixelFormat_Mono8);
+						
+						//
+					// Release image
+
+					pResultImage->Release();
 						
 						I.resize(convertedImage->GetHeight(), convertedImage->GetWidth(), false);
-
+std::cout << convertedImage->GetBufferSize() << std::endl;
 						memcpy(I.bitmap, convertedImage->GetData(), convertedImage->GetBufferSize());
 						break;
 					}
@@ -195,10 +227,7 @@ public:
 				}
 			}
 
-			//
-			// Release image
-
-			pResultImage->Release();
+			
 
 			cout << endl;
 		}
@@ -280,6 +309,7 @@ int PrintDeviceInfo(INodeMap& nodeMap)
 	CameraPtr pCam;
 	ImagePtr convertedImage;
 	ImagePtr pResultImage;
+	ImageProcessor processor;
 
 	vpImage<T> Ie;
 	int depth;
