@@ -96,7 +96,7 @@ int main(int argc, const char **argv)
     std::string filename;
     bool opt_click_allowed = true;
     bool opt_display = true;
-    int opt_niter = 1000;
+    int opt_niter = 400;
     
     float sceneDepth = cZ;//0.5f;
 
@@ -207,9 +207,9 @@ int main(int argc, const char **argv)
   	//Parametres intrinseques pour FlirCam GS3 1" 2048x2048 5.5 um (matrice: 11.264 mm x 11.264 mm)
   
 		//Parametres objectif Yakumo
-		double precond = 1.0;// 0.1;//
+		double precond =  1.0;// 0.1;// for virtual focal-based pre-conditionning
 		//ku /= precond;
-		double f = precond*8.5e-3;//17e-3; // m
+		double f = precond*17e-3;//17e-3; // m
 		double FNumber = 0.95; //no unit
 		double Zf = 0.5;//0.25; // m
 

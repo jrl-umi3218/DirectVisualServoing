@@ -52,7 +52,7 @@
 
 #define VERBOSE
 
-//#define INDICATORS
+#define INDICATORS
 #define FILE_EXT "jpg"
 
 #include <visp3/core/vpImage.h>
@@ -187,7 +187,7 @@ int main(int argc, const char **argv)
     vpImageIo::read(Itexture, filename);
 #endif
 
-		vpCameraParameters cam(750, 750, 320, 256);
+		vpCameraParameters cam(1603, 1603, 320, 256); //px = py = 750 for simulations
 
 #ifdef WITHROBOT
 #ifdef WITH_TX_ROBOT
