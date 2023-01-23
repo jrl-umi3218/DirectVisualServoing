@@ -27,6 +27,8 @@ endif()
 
 set(example_cpp
   photometricVisualServoing
+  captureAndSaveDesired
+  photometricVisualServoingOnly
 )
 
 if(DEFINED USE_IDS)
