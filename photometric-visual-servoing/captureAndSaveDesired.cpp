@@ -3,7 +3,7 @@
  \brief Goes to the desired robot articular pose and capture and save the desired image for photometric VS
  
  * example command line :
-./captureAndSaveDesired /home/guillaume/Data/tsukubacenter.jpg 1000 500
+./build/captureAndSaveDesired /home/guillaume/Data/tsukubacenter.jpg 1000 500
 
  \param file image file to texture a simulated environment
  \param metFac the factor to transform sceneDepth to meters
