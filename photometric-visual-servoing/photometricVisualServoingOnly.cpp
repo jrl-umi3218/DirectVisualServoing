@@ -22,8 +22,8 @@
 
 //#define WITH_TX_ROBOT
 //#define WITH_IDS_CAMERA
-#define WITH_UR_ROBOT
-#define WITH_FLIR_CAMERA
+//#define WITH_UR_ROBOT
+//#define WITH_FLIR_CAMERA
 
 #ifdef WITH_TX_ROBOT
   #include "../src/Robot/C_Staubli.h"
@@ -419,6 +419,7 @@ int main(int argc, const char **argv)
 			
 #else
 #ifdef INDICATORS
+		vpPoseVector pv;
     pv.buildFrom(cMo);
 		p = pv;  
 #endif //INDICATORS
