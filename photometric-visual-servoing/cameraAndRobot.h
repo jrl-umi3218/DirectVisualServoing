@@ -1,7 +1,7 @@
 #ifndef __cameraAndRobot_H__
 #define __cameraAndRobot_H__
 
-#define WITH_SIMU //WITH_SIMU will be undefined if a WITH_*_ROBOT is defined
+//#define WITH_SIMU //WITH_SIMU will be undefined if a WITH_*_ROBOT is defined
 
 #define WITH_TX_ROBOT
 //#define WITH_IDS_CAMERA
