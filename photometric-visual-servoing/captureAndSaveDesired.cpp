@@ -15,40 +15,11 @@
  \date January 2023  
  */
 
-//#define WITH_TX_ROBOT
-//#define WITH_IDS_CAMERA
-#define WITH_UR_ROBOT
-#define WITH_FLIR_CAMERA
-
-#ifdef WITH_TX_ROBOT
-  #include "../src/Robot/C_Staubli.h"
-#endif
-
-#ifdef WITH_UR_ROBOT
-  #include "../src/Robot/C_UR.h"
-#endif
-
-#if defined(WITH_TX_ROBOT) || defined(WITH_UR_ROBOT)
-		#define WITHROBOT
-#endif
-
-#ifdef WITH_IDS_CAMERA
-	#include "../src/Camera/CamuEye.h"
-	#include "../src/Camera/CamuEyeException.h"
-#endif
-
-#ifdef WITH_FLIR_CAMERA
-//  #include "../src/Camera/CamFlirFlyCapture.hpp"
-  #include "../src/Camera/CamFlirSpinnaker.hpp"
-#endif
-
-#if defined(WITH_IDS_CAMERA) || defined(WITH_FLIR_CAMERA)
-		#define WITHCAMERA
-#endif
+#include "cameraAndRobot.h"
 
 #define VERBOSE
 
-#define INDICATORS
+//#define INDICATORS
 #define FILE_EXT "jpg"
 
 #include <visp3/core/vpImage.h>
@@ -151,7 +122,8 @@ int main(int argc, const char **argv)
 #elif defined(WITH_UR_ROBOT)
 		C_UR robot("192.168.1.3", 30002, 2.0); // UR10
 #endif
-#else //without robot, we keep the simulation of a free flying camera
+#elif defined(WITH_SIMU)
+	 //without robot, we keep the simulation of a free flying camera
     vpColVector X[4];
     for (int i = 0; i < 4; i++)
       X[i].resize(3);
@@ -209,7 +181,7 @@ int main(int argc, const char **argv)
 		I = Id; //for display purpose only
 #endif //WITHCAMERA
 
-#else
+#elif defined(WITH_SIMU)
 		I.resize(240, 320, 0);
 		//I.resize(480, 640, 0);
     // camera desired position
@@ -240,7 +212,7 @@ int main(int argc, const char **argv)
   vpColVector p;
 #ifdef WITHROBOT
   robot.getCameraPoseRaw(p);
-#else
+#elif defined(WITH_SIMU)
 	vpPoseVector pv;
 	pv.buildFrom(cdMo);
 	p = pv;  
