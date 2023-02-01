@@ -183,11 +183,11 @@ int main(int argc, const char **argv)
   	//Parametres intrinseques pour FlirCam GS3 1" 2048x2048 5.5 um (matrice: 11.264 mm x 11.264 mm)
   
 		//Parametres objectif Yakumo
-		double precond =  1.0;// 0.1;// for virtual focal-based pre-conditionning
+		double precond =  0.1;// 0.1;// for virtual focal-based pre-conditionning
 		//ku /= precond;
 		double f = precond*17e-3;//17e-3; // m
-		double FNumber = 0.95; //no unit
-		double Zf = 0.5;//0.25; // m
+		double FNumber = 4.0;//0.95; //no unit
+		double Zf = 0.2;//0.5;//0.25; // m
 
 		CCameraThinLensParameters cam(f, ku, FNumber, Zf, u0, v0);
 		
@@ -452,6 +452,9 @@ int main(int argc, const char **argv)
     vpChrono chrono;
     chrono.start();
     do {
+#ifdef INDICATORS
+    duree = vpTime::measureTimeMs();
+#endif    	
       std::cout << "--------------------------------------------" << iter++ << std::endl;
 
 #ifdef WITHROBOT
@@ -516,7 +519,7 @@ int main(int argc, const char **argv)
     v_residuals.push_back(residual);
     v_I_cur.push_back(I);
     v_Idiff.push_back(Idiff);
-    duree = chrono.getDurationMs();
+    duree = vpTime::measureTimeMs() - duree;
     v_tms.push_back(duree);
 
     //v_servo_actif.push_back(servo_actif);

@@ -419,6 +419,9 @@ int main(int argc, const char **argv)
     vpChrono chrono;
     chrono.start();
     do {
+#ifdef INDICATORS
+    duree = vpTime::measureTimeMs();
+#endif    	
       std::cout << "--------------------------------------------" << iter++ << std::endl;
 
 #ifdef WITHROBOT
@@ -483,7 +486,7 @@ int main(int argc, const char **argv)
     v_residuals.push_back(residual);
     v_I_cur.push_back(I);
     v_Idiff.push_back(Idiff);
-    duree = chrono.getDurationMs();
+    duree = vpTime::measureTimeMs() - duree;
     v_tms.push_back(duree);
 
     //v_servo_actif.push_back(servo_actif);
