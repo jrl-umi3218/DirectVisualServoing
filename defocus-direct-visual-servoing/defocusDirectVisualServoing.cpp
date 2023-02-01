@@ -58,7 +58,7 @@
 //Pour images acquises de 640x512
 #define ACQWIDTH 640
 #define ACQHEIGHT 512
-#define FACT 1.0
+#define FACT 0.5
 
 int main(int argc, const char **argv)
 {
@@ -72,7 +72,7 @@ int main(int argc, const char **argv)
     std::string filename;
     bool opt_click_allowed = true;
     bool opt_display = true;
-    int opt_niter = 400;
+    int opt_niter = 1000;
     
     float sceneDepth = cZ;//0.5f;
 

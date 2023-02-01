@@ -5,6 +5,7 @@
 #define  __CamFlirSpinnaker_H__
 
 #include <visp/vpImage.h>
+#include <visp/vpImageTools.h>
 
 #include "Spinnaker.h"
 
@@ -18,7 +19,7 @@ class CamFlirSpinnaker
 {
 public:
 
-  CamFlirSpinnaker(int wdth, int heigh, int dpth, int camID = 0, void *filename=NULL): depth(dpth)
+  CamFlirSpinnaker(int wdth, int heigh, int dpth, int camID = 0, void *filename=NULL): width(wdth), height(heigh), depth(dpth)
   {
 		// Retrieve singleton reference to system object
 		system = System::GetInstance();
@@ -215,8 +216,16 @@ public:
 					pResultImage->Release();
 						
 						I.resize(convertedImage->GetHeight(), convertedImage->GetWidth(), false);
-std::cout << convertedImage->GetBufferSize() << std::endl;
+//std::cout << convertedImage->GetBufferSize() << std::endl;
 						memcpy(I.bitmap, convertedImage->GetData(), convertedImage->GetBufferSize());
+
+						if( (I.getHeight() != height) || (I.getWidth() != width) )
+						{
+							vpImage<T> I_resize;
+							vpImageTools::resize(I, I_resize, width, height, 								vpImageTools::INTERPOLATION_LINEAR);//vpImageTools::INTERPOLATION_AREA);
+							I = I_resize;
+						}
+
 						break;
 					}
 					default:
@@ -313,6 +322,8 @@ int PrintDeviceInfo(INodeMap& nodeMap)
 
 	vpImage<T> Ie;
 	int depth;
+  int width;
+  int height;
 
 };
 
