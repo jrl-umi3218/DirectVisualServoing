@@ -49,6 +49,11 @@
 #include <visp3/robot/vpImageSimulator.h>
 #define cZ 1
 
+//Pour images acquises de 640x512
+#define ACQWIDTH 640
+#define ACQHEIGHT 512
+#define FACT 0.5
+
 int main(int argc, const char **argv)
 {
 #if (defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
@@ -61,7 +66,7 @@ int main(int argc, const char **argv)
     std::string filename;
     bool opt_click_allowed = true;
     bool opt_display = true;
-    int opt_niter = 1000;
+    int opt_niter = 6000;
     
     float sceneDepth = cZ;//0.5f;
 
@@ -139,8 +144,13 @@ int main(int argc, const char **argv)
     
   vpImage<unsigned char> Itexture;
 
+	int larg = ACQWIDTH*FACT, haut = ACQHEIGHT*FACT;
+	
+	// very theorical
+	double u0 = (ACQWIDTH*0.5)*FACT;
+  double v0 = (ACQHEIGHT*0.5)*FACT;
+
 #ifdef WITHCAMERA
-	int larg = 640, haut = 512;
 
 #ifdef WITH_IDS_CAMERA
 	  cv::Mat iGrab(haut,larg,CV_8UC1);
@@ -158,7 +168,16 @@ int main(int argc, const char **argv)
     vpImageIo::read(Itexture, filename);
 #endif
 
-		vpCameraParameters cam(1603, 1603, 320, 256); //px = py = 750 for simulations
+		//Parametres intrinseques pour FlirCam FL3 1/1.8" 1280x1024 5.3 um (matrice: 6.784 mm x 5.4272 mm)
+		double ku = (2*5.3e-6)/FACT; // m // 2*5.3e-6 because camera configured with binning x2
+
+  	//Parametres intrinseques pour FlirCam GS3 1" 2048x2048 5.5 um (matrice: 11.264 mm x 11.264 mm)
+  
+		//Parametres objectif Yakumo
+		double precond = 1.0;// for virtual focal-based pre-conditionning
+		double f = precond*17e-3;//17e-3; // m
+
+		vpCameraParameters cam(f/ku, f/ku, u0, v0); //px = py = 750 for simulations
 
 #ifdef WITHROBOT
 #ifdef WITH_TX_ROBOT
