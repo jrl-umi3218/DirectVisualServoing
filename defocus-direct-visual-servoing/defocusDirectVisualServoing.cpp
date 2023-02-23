@@ -56,8 +56,8 @@
 #define cZ 1
 
 //Pour images acquises de 640x512
-#define ACQWIDTH 640
-#define ACQHEIGHT 512
+#define ACQWIDTH 680
+#define ACQHEIGHT 480
 #define FACT 0.5
 
 int main(int argc, const char **argv)
@@ -72,7 +72,7 @@ int main(int argc, const char **argv)
     std::string filename;
     bool opt_click_allowed = true;
     bool opt_display = true;
-    int opt_niter = 1000;
+    int opt_niter = 3000;
     
     float sceneDepth = cZ;//0.5f;
 
@@ -145,12 +145,12 @@ int main(int argc, const char **argv)
 
   p_init[0] = shiftX/metFac;
   p_init[2] = shiftZ/metFac;
-  p_init[4] = rotY/180.0; //*M_PI
+  p_init[4] = (rotY*M_PI)/180.0; //*M_PI
   
     
   vpImage<unsigned char> Itexture;
 
-	int larg = ACQWIDTH*FACT, haut = ACQHEIGHT*FACT;
+	int larg = 340, haut = 240;
 	
 	// very theorical
 	double u0 = (ACQWIDTH*0.5)*FACT;
@@ -194,7 +194,7 @@ int main(int argc, const char **argv)
 
 #ifdef WITHROBOT
 #ifdef WITH_TX_ROBOT
-		C_Staubli robot("10.1.22.254", 1001); // TX2-60: 172.16.0.52?
+		C_Staubli robot("172.16.0.52", 1002); // TX2-60: 172.16.0.52?
 #elif defined(WITH_UR_ROBOT)
 		C_UR robot("192.168.1.3", 30003, 2.0); // UR10
 #endif
@@ -237,13 +237,12 @@ int main(int argc, const char **argv)
 		vpColVector j_init(6);
 
 		//0.5 m depth 2
-		j_init[0] = vpMath::rad(-98.72);
-		j_init[1] = vpMath::rad(-158.20);
-		j_init[2] = vpMath::rad(-99.87);
-		j_init[3] = vpMath::rad(-11.00);
-		j_init[4] = vpMath::rad(87.87);
-		j_init[5] = vpMath::rad(97.40);
-
+		j_init[0] = vpMath::rad(85.48);
+		j_init[1] = vpMath::rad(42.33);
+		j_init[2] = vpMath::rad(76.37);
+		j_init[3] = vpMath::rad(-12.58);
+		j_init[4] = vpMath::rad(60.82);
+		j_init[5] = vpMath::rad(32.15);
 		robot.setCameraArticularPose(j_init);
 		
 		vpTime::wait(5000);
@@ -256,7 +255,7 @@ int main(int argc, const char **argv)
 #endif //WITHCAMERA
 
 #else
-		I.resize(240, 320, 0);
+		I.resize(240, 340, 0);
 		//I.resize(480, 640, 0);
     // camera desired position
     vpHomogeneousMatrix cdMo;
@@ -282,16 +281,21 @@ int main(int argc, const char **argv)
   filenameOut = s.str();
   std::ofstream ficDesiredPose(filenameOut.c_str());
 
-  vpColVector p;
-#ifdef WITHROBOT   
-  robot.getCameraPoseRaw(p);
+  vpColVector p(6);
+  vpColVector pd(6);
+#ifdef WITHROBOT
+  int flag = robot.getCameraPoseRaw(p);
+  while(flag==-1)
+  {
+    flag = robot.getCameraPoseRaw(p) ;
+    pd = p;
+  }
 #else
 	vpPoseVector pv;
 	pv.buildFrom(cdMo);
 	p = pv;  
 #endif //WITHROBOT
   ficDesiredPose << p.t() << std::endl;
-
   ficDesiredPose.close();
 #endif //INDICATORS
 
@@ -310,7 +314,7 @@ int main(int argc, const char **argv)
 
 #if defined(VISP_HAVE_X11) || defined(VISP_HAVE_GDI) || defined(VISP_HAVE_GTK) || defined(VISP_HAVE_OPENCV)
     if (opt_display) {
-      d.init(I, 20, 10, "Photometric visual servoing : s");
+      d.init(I, 20, 10, "Defocus Based visual servoing : s");
       vpDisplay::display(I);
       vpDisplay::flush(I);
     }
@@ -401,6 +405,7 @@ int main(int argc, const char **argv)
     // (actually, this is the image...)
     //vpFeatureLuminance sI;
 		CFeatureDefocusedLuminance sI;
+    
     sI.init(I.getHeight(), I.getWidth(), sceneDepth);
     sI.setCameraParameters(cam);
     sI.buildFrom(I);
@@ -437,7 +442,9 @@ int main(int argc, const char **argv)
 
 #ifdef INDICATORS
 	double residual;
-  std::vector<vpColVector> v_p;
+  std::vector<vpColVector> v_p(6);
+  std::vector<vpColVector> v_robot(6);
+  std::vector<vpColVector> p_error(6);
   std::vector<double> v_residuals;
   std::vector<vpImage<unsigned char> > v_I_cur;
   std::vector<vpImage<unsigned char> > v_Idiff;
@@ -501,7 +508,7 @@ int main(int argc, const char **argv)
       normError = servo.getError().sumSquare();
       std::cout << " |e| = " << normError << std::endl;
       std::cout << " |v| = " << sqrt(v.sumSquare()) << std::endl;
-
+  
       // send the robot velocity
 #ifdef WITHROBOT
     //if(servo_actif)
@@ -519,6 +526,8 @@ int main(int argc, const char **argv)
     v_residuals.push_back(residual);
     v_I_cur.push_back(I);
     v_Idiff.push_back(Idiff);
+    v_robot.push_back(v);
+    p_error.push_back(pd-p);
     duree = vpTime::measureTimeMs() - duree;
     v_tms.push_back(duree);
 
@@ -537,6 +546,7 @@ int main(int argc, const char **argv)
 #ifdef WITHROBOT
     //if(servo_actif)
       robot.setCameraVelocity(v);
+      
 
 #else
     freeFlyingCamera.setVelocity(vpRobot::CAMERA_FRAME, v);
@@ -549,6 +559,13 @@ int main(int argc, const char **argv)
     s << "resultat/poses.txt";
     filename = s.str();
     std::ofstream ficPoses(filename.c_str());
+
+    //save camera velocity list to file
+    s.str("");
+    s.setf(std::ios::right, std::ios::adjustfield);
+    s << "resultat/velocity.txt";
+    filename = s.str();
+    std::ofstream ficVel(filename.c_str());
     //save residual list to file
     s.str("");
     s.setf(std::ios::right, std::ios::adjustfield);
@@ -561,6 +578,12 @@ int main(int argc, const char **argv)
     s << "resultat/times.txt";
     filename = s.str();
     std::ofstream ficTimes(filename.c_str());
+    //save position error
+    s.str("");
+    s.setf(std::ios::right, std::ios::adjustfield);
+    s << "resultat/ErrorInPosition.txt";
+    filename = s.str();
+    std::ofstream ficErrorPos(filename.c_str());
 		/*
     //save servo actif list to file
     s.str("");
@@ -573,8 +596,9 @@ int main(int argc, const char **argv)
     {
       ficPoses << v_p[i].t() << std::endl;
       ficResiduals << std::fixed << std::setw( 11 ) << std::setprecision( 6 ) << v_residuals[i] << std::endl;
-      
+      ficVel << v_robot[i].t() << std::endl;
       ficTimes << v_tms[i] << std::endl;
+      ficErrorPos << p_error[i].t()<< std::endl;
       //ficSVD << v_svd[i] << std::endl;
       //ficServo << v_servo_actif[i] << std::endl;
 
@@ -590,10 +614,11 @@ int main(int argc, const char **argv)
       filename = s.str();
       vpImageIo::write(v_Idiff[i], filename);
     }
-
+    ficVel.close();
     ficPoses.close();
     ficResiduals.close();
     ficTimes.close();
+    ficErrorPos.close();
     //ficSVD.close();
     //ficServo.close();
 #endif //INDICATORS
