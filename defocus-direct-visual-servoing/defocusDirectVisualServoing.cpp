@@ -30,7 +30,6 @@
 
 #define INDICATORS
 #define FILE_EXT "jpg"
-
 #include <visp3/core/vpImage.h>
 #include <visp3/core/vpImageTools.h>
 #include <visp3/io/vpImageIo.h>
@@ -60,6 +59,7 @@
 #define ACQHEIGHT 480
 #define FACT 0.5
 
+using namespace std::chrono;
 int main(int argc, const char **argv)
 {
 #if (defined(VISP_HAVE_LAPACK) || defined(VISP_HAVE_EIGEN3) || defined(VISP_HAVE_OPENCV))
@@ -72,7 +72,7 @@ int main(int argc, const char **argv)
     std::string filename;
     bool opt_click_allowed = true;
     bool opt_display = true;
-    int opt_niter = 3000;
+    int opt_niter = 1500;
     
     float sceneDepth = cZ;//0.5f;
 
@@ -150,7 +150,7 @@ int main(int argc, const char **argv)
     
   vpImage<unsigned char> Itexture;
 
-	int larg = 340, haut = 240;
+	int larg = ACQWIDTH*FACT, haut = ACQHEIGHT*FACT;
 	
 	// very theorical
 	double u0 = (ACQWIDTH*0.5)*FACT;
@@ -237,12 +237,12 @@ int main(int argc, const char **argv)
 		vpColVector j_init(6);
 
 		//0.5 m depth 2
-		j_init[0] = vpMath::rad(85.48);
-		j_init[1] = vpMath::rad(42.33);
-		j_init[2] = vpMath::rad(76.37);
-		j_init[3] = vpMath::rad(-12.58);
-		j_init[4] = vpMath::rad(60.82);
-		j_init[5] = vpMath::rad(32.15);
+		j_init[0] = vpMath::rad(82.71);
+		j_init[1] = vpMath::rad(55.63);
+		j_init[2] = vpMath::rad(77.44);
+		j_init[3] = vpMath::rad(-20.16);
+		j_init[4] = vpMath::rad(48.45);
+		j_init[5] = vpMath::rad(37.03);
 		robot.setCameraArticularPose(j_init);
 		
 		vpTime::wait(5000);
@@ -404,24 +404,30 @@ int main(int argc, const char **argv)
     // current visual feature built from the image
     // (actually, this is the image...)
     //vpFeatureLuminance sI;
+    
 		CFeatureDefocusedLuminance sI;
     
     sI.init(I.getHeight(), I.getWidth(), sceneDepth);
     sI.setCameraParameters(cam);
     sI.buildFrom(I);
-
+    
+    
     // desired visual feature built from the image
     //vpFeatureLuminance sId;
+    auto start = high_resolution_clock::now();
 		CFeatureDefocusedLuminance sId;
     sId.init(I.getHeight(), I.getWidth(), sceneDepth);
     sId.setCameraParameters(cam);
     sId.buildFrom(Id);
+    auto stop = high_resolution_clock::now();
+    duration<double>d_feat_d = stop - start;
 
     // Create visual-servoing task
     vpServo servo;
     // define the task
     // - we want an eye-in-hand control law
     // - robot or freeFlyingCamera is controlled in the camera frame
+    start = high_resolution_clock::now();
     servo.setServo(vpServo::EYEINHAND_CAMERA);
     // add current and desired visual features
     servo.addFeature(sI, sId);
@@ -429,6 +435,8 @@ int main(int argc, const char **argv)
     servo.setLambda(1); //30
     // compute interaction matrix at the desired position
     servo.setInteractionMatrixType(vpServo::CURRENT);
+    stop =high_resolution_clock::now();
+    duration<double> d_inter_mat = stop-start;
 
 #ifndef WITHROBOT
     // set a velocity control mode
@@ -438,6 +446,8 @@ int main(int argc, const char **argv)
     int iter = 1;
     double normError = 0;
     vpColVector v; // camera velocity send to the robot
+    duration<double> d_control;
+    duration<double>d_feat_c;
 
 
 #ifdef INDICATORS
@@ -451,6 +461,12 @@ int main(int argc, const char **argv)
   double duree;
   std::vector<double> v_tms;
   std::vector<bool> v_servo_actif;
+
+  std::vector<duration<double>> t_feat_c;
+  std::vector<duration<double>> t_feat_d;
+  std::vector<duration<double>> t_inter_mat;
+  std::vector<duration<double>> t_control;
+
 
   double cond;
   std::vector<double> v_svd;
@@ -500,11 +516,16 @@ int main(int argc, const char **argv)
         vpDisplay::flush(Idiff);
       }
 #endif
+
       // Compute current visual feature
+      start = high_resolution_clock::now();
       sI.buildFrom(I);
-
+      auto stop = high_resolution_clock::now();
+      d_feat_c = stop - start;
+      start = high_resolution_clock::now();
       v = servo.computeControlLaw(); // camera velocity send to the robot
-
+      stop = high_resolution_clock::now();
+      d_control = stop - start; 
       normError = servo.getError().sumSquare();
       std::cout << " |e| = " << normError << std::endl;
       std::cout << " |v| = " << sqrt(v.sumSquare()) << std::endl;
@@ -530,6 +551,13 @@ int main(int argc, const char **argv)
     p_error.push_back(pd-p);
     duree = vpTime::measureTimeMs() - duree;
     v_tms.push_back(duree);
+
+    t_feat_c.push_back(d_feat_c);
+    t_feat_d.push_back(d_feat_d);
+    t_inter_mat.push_back(d_inter_mat);
+    t_control.push_back(d_control);
+
+
 
     //v_servo_actif.push_back(servo_actif);
 
@@ -584,6 +612,32 @@ int main(int argc, const char **argv)
     s << "resultat/ErrorInPosition.txt";
     filename = s.str();
     std::ofstream ficErrorPos(filename.c_str());
+
+    //save feature building time
+    s.str("");
+    s.setf(std::ios::right, std::ios::adjustfield);
+    s << "resultat/desiredfeature_building_time.txt";
+    filename = s.str();
+    std::ofstream ficDesiredFeat(filename.c_str());
+
+    //save feature building time
+    s.str("");
+    s.setf(std::ios::right, std::ios::adjustfield);
+    s << "resultat/feature_building_time.txt";
+    filename = s.str();
+    std::ofstream ficFeat(filename.c_str());
+    //Interaction matrix 
+    s.str("");
+    s.setf(std::ios::right, std::ios::adjustfield);
+    s << "resultat/interaction_matrix_time.txt";
+    filename = s.str();
+    std::ofstream ficIntMat(filename.c_str());
+
+    s.str("");
+    s.setf(std::ios::right, std::ios::adjustfield);
+    s << "resultat/control_time.txt";
+    filename = s.str();
+    std::ofstream ficCtrl(filename.c_str());
 		/*
     //save servo actif list to file
     s.str("");
@@ -599,6 +653,13 @@ int main(int argc, const char **argv)
       ficVel << v_robot[i].t() << std::endl;
       ficTimes << v_tms[i] << std::endl;
       ficErrorPos << p_error[i].t()<< std::endl;
+
+      ficDesiredFeat << t_feat_d[i].count() << std::endl;
+      ficFeat << t_feat_c[i].count() << std::endl;
+      ficIntMat << t_inter_mat[i].count()<< std::endl;
+      ficCtrl << t_control[i].count() << std::endl;
+
+      
       //ficSVD << v_svd[i] << std::endl;
       //ficServo << v_servo_actif[i] << std::endl;
 
