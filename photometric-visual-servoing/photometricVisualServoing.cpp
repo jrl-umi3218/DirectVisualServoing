@@ -66,7 +66,7 @@ int main(int argc, const char **argv)
     std::string filename;
     bool opt_click_allowed = true;
     bool opt_display = true;
-    int opt_niter = 6000;
+    int opt_niter = 2000;
     
     float sceneDepth = cZ;//0.5f;
 
@@ -173,9 +173,13 @@ int main(int argc, const char **argv)
 
   	//Parametres intrinseques pour FlirCam GS3 1" 2048x2048 5.5 um (matrice: 11.264 mm x 11.264 mm)
   
-		//Parametres objectif Yakumo
 		double precond = 1.0;// for virtual focal-based pre-conditionning
-		double f = precond*17e-3;//17e-3; // m
+		//Parametres objectif Yakumo
+		//double f = precond*17e-3; // m
+		//Parametres objectif Computar
+		double f = precond*8e-3; // m
+		//Parametres objectif varifocal Fujinon (longest focal)
+		//double f = precond*15.2e-3; // m
 
 		vpCameraParameters cam(f/ku, f/ku, u0, v0); //px = py = 750 for simulations
 
@@ -224,7 +228,7 @@ int main(int argc, const char **argv)
 		vpColVector j_init(6);
 
 		//0.5 m depth 2
-		j_init[0] = vpMath::rad(-98.72);
+		j_init[0] = vpMath::rad(-150);//98.72);
 		j_init[1] = vpMath::rad(-158.20);
 		j_init[2] = vpMath::rad(-99.87);
 		j_init[3] = vpMath::rad(-11.00);

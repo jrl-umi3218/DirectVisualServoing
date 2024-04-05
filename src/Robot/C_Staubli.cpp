@@ -11,7 +11,7 @@
 C_Staubli::C_Staubli(std::string hostName, unsigned int portNum, double _L) : v(6)
 {
 	std::cout << clientStaubli.connectToHostname(hostName, portNum) << std::endl;
- }
+}
 
 C_Staubli::~C_Staubli()
 {
