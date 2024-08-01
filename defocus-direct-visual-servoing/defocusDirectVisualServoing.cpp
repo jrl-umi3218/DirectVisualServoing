@@ -75,6 +75,14 @@ int main(int argc, const char **argv)
     int opt_niter = 1500;
     
     float sceneDepth = cZ;//0.5f;
+    vpColVector m_dof;
+    m_dof.resize(6);
+    m_dof[0] = true;
+    m_dof[1] = true;
+    m_dof[2] = true;
+    m_dof[3] = true;
+    m_dof[4] = true;
+    m_dof[5] = true;
 
     
     //1. Loading a perpsective camera from an XML file got from the MV calibration software
@@ -433,6 +441,7 @@ int main(int argc, const char **argv)
     servo.addFeature(sI, sId);
     // set the gain
     servo.setLambda(1); //30
+    servo.setCameraDoF(m_dof);
     // compute interaction matrix at the desired position
     servo.setInteractionMatrixType(vpServo::CURRENT);
     stop =high_resolution_clock::now();
