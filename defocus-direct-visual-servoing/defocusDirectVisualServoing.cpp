@@ -11,7 +11,7 @@
  \param metFac the factor to transform shiftX to meters
  \param sceneDepth the positive depth of the scene at desired pose (in coherent units regarding metFac)
  \param shiftX the signed lateral shift (in coherent units regarding metFac)
- \param shiftZ the signed depth shift (in coherent units regarding metFac)
+ \param shiftY the signed lateral shift (in coherent units regarding metFac)
  \param rotY the signed vertical rotation (in degrees)
  *
  \author Guillaume CARON
@@ -72,10 +72,18 @@ int main(int argc, const char **argv)
     std::string filename;
     bool opt_click_allowed = true;
     bool opt_display = true;
-    int opt_niter = 1000;
+    int opt_niter = 500;
     
     float sceneDepth = cZ;//0.5f;
-
+    //Selection of the controlled degrees of freedom
+    vpColVector m_dof;
+    m_dof.resize(6);
+    m_dof[0] = true;
+    m_dof[1] = true;
+    m_dof[2] = false;
+    m_dof[3] = false;
+    m_dof[4] = false;
+    m_dof[5] = false;
     
     //1. Loading a perpsective camera from an XML file got from the MV calibration software
     if(argc < 2)
@@ -120,7 +128,7 @@ int main(int argc, const char **argv)
   else
     shiftX = atof(argv[4]);
 
-  float shiftZ = 0.f;
+  float shiftY = 0.f;
   if(argc < 6)
   {
 #ifdef VERBOSE
@@ -128,7 +136,7 @@ int main(int argc, const char **argv)
 #endif //VERBOSE
   }
   else
-    shiftZ = atof(argv[5]);
+    shiftY = atof(argv[5]);
 
   float rotY = 0.f;
   if(argc < 7)
@@ -144,7 +152,7 @@ int main(int argc, const char **argv)
   p_init.resize(6);
 
   p_init[0] = shiftX/metFac;
-  p_init[2] = shiftZ/metFac;
+  p_init[1] = shiftY/metFac;
   p_init[4] = rotY/180.0; //*M_PI
   
     
@@ -186,8 +194,8 @@ int main(int argc, const char **argv)
 		double precond =  0.1;// 0.1;// for virtual focal-based pre-conditionning
 		//ku /= precond;
 		double f = precond*17e-3;//17e-3; // m
-		double FNumber = 4.0;//0.95; //no unit
-		double Zf = 0.2;//0.5;//0.25; // m
+		double FNumber = 0.95;//0.95; //no unit
+		double Zf = 0.7;//0.5;//0.25; // m
 
 		CCameraThinLensParameters cam(f, ku, FNumber, Zf, u0, v0);
 		
@@ -237,12 +245,12 @@ int main(int argc, const char **argv)
 		vpColVector j_init(6);
 
 		//0.5 m depth 2
-		j_init[0] = vpMath::rad(-98.72);
-		j_init[1] = vpMath::rad(-158.20);
-		j_init[2] = vpMath::rad(-99.87);
-		j_init[3] = vpMath::rad(-11.00);
-		j_init[4] = vpMath::rad(87.87);
-		j_init[5] = vpMath::rad(97.40);
+		j_init[0] = vpMath::rad(48.98);
+		j_init[1] = vpMath::rad(-126.40);
+		j_init[2] = vpMath::rad(-84.54);
+		j_init[3] = vpMath::rad(-57.21);
+		j_init[4] = vpMath::rad(88.07);
+		j_init[5] = vpMath::rad(42.22);
 
 		robot.setCameraArticularPose(j_init);
 		
@@ -282,7 +290,8 @@ int main(int argc, const char **argv)
   filenameOut = s.str();
   std::ofstream ficDesiredPose(filenameOut.c_str());
 
-  vpColVector p;
+  vpColVector p(6);
+  vpColVector pd(6);
 #ifdef WITHROBOT   
   robot.getCameraPoseRaw(p);
 #else
@@ -291,7 +300,7 @@ int main(int argc, const char **argv)
 	p = pv;  
 #endif //WITHROBOT
   ficDesiredPose << p.t() << std::endl;
-
+  pd = p;
   ficDesiredPose.close();
 #endif //INDICATORS
 
@@ -422,6 +431,7 @@ int main(int argc, const char **argv)
     servo.addFeature(sI, sId);
     // set the gain
     servo.setLambda(1); //30
+    servo.setCameraDoF(m_dof);
     // compute interaction matrix at the desired position
     servo.setInteractionMatrixType(vpServo::CURRENT);
 
@@ -440,6 +450,7 @@ int main(int argc, const char **argv)
   std::vector<vpColVector> v_p;
   std::vector<double> v_residuals;
   std::vector<vpImage<unsigned char> > v_I_cur;
+  std::vector<vpColVector> p_error(6);
   std::vector<vpImage<unsigned char> > v_Idiff;
   double duree;
   std::vector<double> v_tms;
@@ -519,6 +530,7 @@ int main(int argc, const char **argv)
     v_residuals.push_back(residual);
     v_I_cur.push_back(I);
     v_Idiff.push_back(Idiff);
+    p_error.push_back(pd-p);
     duree = vpTime::measureTimeMs() - duree;
     v_tms.push_back(duree);
 
@@ -561,6 +573,11 @@ int main(int argc, const char **argv)
     s << "resultat/times.txt";
     filename = s.str();
     std::ofstream ficTimes(filename.c_str());
+    s.str("");
+    s.setf(std::ios::right, std::ios::adjustfield);
+    s << "resultat/ErrorInPosition.txt";
+    filename = s.str();
+    std::ofstream ficErrorPos(filename.c_str());
 		/*
     //save servo actif list to file
     s.str("");
@@ -573,7 +590,7 @@ int main(int argc, const char **argv)
     {
       ficPoses << v_p[i].t() << std::endl;
       ficResiduals << std::fixed << std::setw( 11 ) << std::setprecision( 6 ) << v_residuals[i] << std::endl;
-      
+      ficErrorPos << p_error[i].t()<< std::endl;
       ficTimes << v_tms[i] << std::endl;
       //ficSVD << v_svd[i] << std::endl;
       //ficServo << v_servo_actif[i] << std::endl;
@@ -589,11 +606,14 @@ int main(int argc, const char **argv)
       s << "resultat/IErr/IErr." << std::setw(4) << std::setfill('0') << i << "." << FILE_EXT;
       filename = s.str();
       vpImageIo::write(v_Idiff[i], filename);
+
+      
     }
 
     ficPoses.close();
     ficResiduals.close();
     ficTimes.close();
+    ficErrorPos.close();
     //ficSVD.close();
     //ficServo.close();
 #endif //INDICATORS
